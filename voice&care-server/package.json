@@ -1,11 +1,11 @@
 {
-  "name": "swagger-petstore",
+  "name": "voice-care-hcl",
   "version": "1.0.0",
-  "description": "Swagger is an easy language: [http://swagger.io](http://swagger.io). [irc.freenode.net, #swagger](http://swagger.io/irc/).      For this sample, you can use the api key `special-key` to test the authorization     filters.",
+  "description": "Implementação da API Google Assistant",
   "main": "index.js",
   "scripts": {
-    "prestart": "npm install",
-    "start": "node index.js"
+	"prestart": "npm install",
+	"start": "node index.js"
   },
   "keywords": [
     "swagger"
