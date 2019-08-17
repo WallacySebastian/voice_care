@@ -50,89 +50,111 @@ const patientSchema = new Schema({
 }, { collection: "patients" });
 const Patient = mongoose.model('Patient', patientSchema);
 
-app.post('/', (req, res) => {
-    //console.log(req.body.queryResult);
-    //let typeOfAdvice = req.body.queryResult;
+app.post('/', async (req, res) => {
+    console.log(req.body);
     let tokenId = "a1b2c3"; //req.body.tokenId
+    //let type = "generalOrientation";
 
-    Patient.findOne({ tokenId: tokenId }, async (err, patient) => {
-        switch (req.body.type) {
-            case "foods":
-                FoodAdvice.findById(patient.foodAdvice, (err, advice) => {
-                    if (advice)
-                        res.status(200).json({ fulfillmentText: advice.text });
-                    else
-                        res.status(400).json({ response: "- ORIENTAÇÃO NÃO ENCONTRADA -" });
+    if (!req.body.queryResult.parameters["wishes"]) {
+        Patient.findOne({ tokenId: tokenId }, async (err, patient) => {
+            if (patient) {
+                switch (req.body.queryResult.parameters.orientacao1) {
+                    case "alimentação":
+                        FoodAdvice.findById(patient.foodAdvice, (err, advice) => {
+                            if (advice)
+                                res.status(200).json({ fulfillmentText: advice.text });
+                            else
+                                res.status(400).json({ response: "- ORIENTAÇÃO NÃO ENCONTRADA -" });
+                        });
+                        break;
+                    case "repouso":
+                        RestAdvice.findById(patient.restAdvice, (err, advice) => {
+                            if (advice)
+                                res.status(200).json({ fulfillmentText: advice.text });
+                            else
+                                res.status(400).json({ response: "- ORIENTAÇÃO NÃO ENCONTRADA -" });
+                        });
+                        break;
+                    case "atividades":
+                        ActivitiesAdvice.findById(patient.activitiesAdvice, (err, advice) => {
+                            if (advice)
+                                res.status(200).json({ fulfillmentText: advice.text });
+                            else
+                                res.status(400).json({ response: "- ORIENTAÇÃO NÃO ENCONTRADA -" });
+                        });
+                        break
+                    case "higiene":
+                        HygieneAdvice.findById(patient.hygieneAdvice, (err, advice) => {
+                            if (advice)
+                                res.status(200).json({ fulfillmentText: advice.text });
+                            else
+                                res.status(400).json({ response: "- ORIENTAÇÃO NÃO ENCONTRADA -" });
+                        });
+                        break;
+                    case "gerais":
+                        GeneralAdvice.findById(patient.generalAdvice, (err, advice) => {
+                            if (advice)
+                                res.status(200).json({ fulfillmentText: advice.text });
+                            else
+                                res.status(400).json({ response: "- ORIENTAÇÃO NÃO ENCONTRADA -" });
+                        });
+                        break;
+                    default:
+                        res.status(400).json({ response: "- TIPO DE ORIENTAÇÃO INVÁLIDO -" });
+                        break;
+                }
+            }
+            else {
+                let patient = new Patient({
+                    name: "anonym",
+                    tokenId: req.body.responseId,
+                    registerDoc: "doc-" + req.body.responseId,
+                    diseases: ["câncer", "hipertensão"],
+                    foodAdvice: "5d57edf55fc6e931c1f8e80f",
+                    restAdvice: "5d57ee235fc6e931c1f8e810",
+                    activitiesAdvice: "5d57ee3d5fc6e931c1f8e811",
+                    hygieneAdvice: "5d57ee725fc6e931c1f8e813",
+                    generalAdvice: "5d57ee5a5fc6e931c1f8e812"
                 });
-                break;
-            case "rest":
-                RestAdvice.findById(patient.restAdvice, (err, advice) => {
-                    if (advice)
-                        res.status(200).json({ fulfillmentText: advice.text });
-                    else
-                        res.status(400).json({ response: "- ORIENTAÇÃO NÃO ENCONTRADA -" });
-                });
-                break;
-            case "activities":
-                ActivitiesAdvice.findById(patient.activitiesAdvice, (err, advice) => {
-                    if (advice)
-                        res.status(200).json({ fulfillmentText: advice.text });
-                    else
-                        res.status(400).json({ response: "- ORIENTAÇÃO NÃO ENCONTRADA -" });
-                });
-                break
-            case "hygiene":
-                HygieneAdvice.findById(patient.hygieneAdvice, (err, advice) => {
-                    if (advice)
-                        res.status(200).json({ fulfillmentText: advice.text });
-                    else
-                        res.status(400).json({ response: "- ORIENTAÇÃO NÃO ENCONTRADA -" });
-                });
-                break;
-            case "general":
-                GeneralAdvice.findById(patient.generalAdvice, (err, advice) => {
-                    if (advice)
-                        res.status(200).json({ fulfillmentText: advice.text });
-                    else
-                        res.status(400).json({ response: "- ORIENTAÇÃO NÃO ENCONTRADA -" });
-                });
-                break;
-            case "all":
-                // ENDPOINT EXPERIMENTAL
-                let advices = {
-                    foods: '',
-                    rest: '',
-                    activities: '',
-                    hygiene: '',
-                    general: ''
-                };
-                await FoodAdvice.findById(patient.foodAdvice, (err, advice) => {
-                    if (advice)
-                        advices.foods = advice;
-                });
-                await RestAdvice.findById(patient.restAdvice, (err, advice) => {
-                    if (advice)
-                        advices.rest = advice;
-                });
-                await ActivitiesAdvice.findById(patient.activitiesAdvice, (err, advice) => {
-                    if (advice)
-                        advices.activities = advice;
-                });
-                await HygieneAdvice.findById(patient.hygieneAdvice, (err, advice) => {
-                    if (advice)
-                        advices.hygiene = advice;
-                });
-                await GeneralAdvice.findById(patient.generalAdvice, (err, advice) => {
-                    if (advice)
-                        advices.general = advice;
-                });
-                res.status(200).json({ fulfillmentText: advices });
-                break;
-            default:
-                res.status(400).json({ response: "- TIPO DE ORIENTAÇÃO INVÁLIDO -" });
-                break;
-        }
-    });
+                console.log("Inserindo um novo Paciente");
+                patient.save()
+                    .then(() => {
+                        console.log("- INSERIDO NO DB COM SUCESSO -");
+                        res.status(201).json({ response: "- INSERIDO NO DB COM SUCESSO -" });
+                    })
+                    .catch((err) => {
+                        console.log("- ERRO AO INSERIR NO DB -");
+                        console.error(err)
+                        res.status(400).json({ response: "- ERRO AO INSERIR NO DB -" });
+                    });
+            }
+        });
+    }
+    else {
+        let arr = req.body.queryResult.parameters["wishes"];
+        Advice.find({}, async (err, advices) => {
+            let resp = [];
+            await advices.forEach(async (advice) => {
+                let aux = true;
+                if (arr.length > Math.floor(advice.keys.length / 2)) {
+                    await arr.forEach((item) => {
+                        if (!advice.keys.includes(item)) {
+                            aux = false;
+                        }
+                    });
+                    if(aux)
+                        resp.push(advice)
+                }
+            });
+            if (resp.length > 0) {
+                console.log("returned: ", resp[0].text);
+                res.status(200).json({ fulfillmentText: resp[0].text });
+            }
+            else {
+                res.status(400).json({ fulfillmentText: "Lamento mas não encontramos nenhuma orientação em nosso banco de dados." });
+            }
+        });
+    }
 });
 
 app.post('/advices', (req, res) => {
