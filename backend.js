@@ -58,7 +58,7 @@ app.post('/', async (req, res) => {
     if (!req.body.queryResult.parameters["wishes"]) {
         Patient.findOne({ tokenId: tokenId }, async (err, patient) => {
             if (patient) {
-                switch (req.body.queryResult.parameters.orientacao1) {
+                switch (req.body.queryResult.parameters["areas"]) {
                     case "alimentação":
                         FoodAdvice.findById(patient.foodAdvice, (err, advice) => {
                             if (advice)
